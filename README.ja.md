@@ -272,6 +272,9 @@ curl -X POST http://localhost:3000/api/v1/tasks/<taskId>/answer \
 | `npm run build` | TypeScriptをコンパイル |
 | `npm start` | 本番モードで起動 |
 | `npm run dev` | 開発モードで起動（ホットリロード） |
+| `npm test` | テスト実行（vitest） |
+| `npm run test:watch` | テストをウォッチモードで実行 |
+| `npm run test:coverage` | カバレッジ付きテスト実行 |
 | `npm run lint` | ESLintで静的解析 |
 | `npm run typecheck` | TypeScriptの型チェック |
 

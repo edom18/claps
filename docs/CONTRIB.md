@@ -57,6 +57,9 @@ npm run dev
 | `npm run build` | TypeScriptをコンパイルし、管理画面の静的ファイルをdist/admin/にコピー |
 | `npm start` | ビルド済みアプリケーションを本番モードで起動 |
 | `npm run dev` | 開発モードでホットリロード付きで起動（tsx watch使用） |
+| `npm test` | vitest でユニットテストを実行 |
+| `npm run test:watch` | vitest をウォッチモードで実行（ファイル変更時に自動再実行） |
+| `npm run test:coverage` | カバレッジレポート付きでテスト実行（@vitest/coverage-v8） |
 | `npm run lint` | ESLintでソースコードの静的解析を実行 |
 | `npm run typecheck` | TypeScriptの型チェックのみ実行（出力なし） |
 
@@ -113,6 +116,14 @@ tsx watch src/index.ts
 
 ```
 claps/
+├── tests/                      # ユニットテスト (vitest)
+│   ├── helpers/                # 共通モック・ヘルパー
+│   ├── channel/                # チャネル抽象化層テスト
+│   ├── adapters/               # 各アダプタテスト
+│   ├── session/                # セッションストアテスト
+│   ├── config/                 # 設定テスト
+│   ├── messages/               # メッセージテスト
+│   └── history/                # 履歴テスト
 ├── src/                        # ソースコード
 │   ├── index.ts                # メインエントリーポイント
 │   ├── config.ts               # 設定読み込み
@@ -197,16 +208,64 @@ main ─────────────────────────
 
 1. ブランチを作成
 2. 変更を実装
-3. `npm run lint` でチェック
-4. `npm run typecheck` で型チェック
-5. PRを作成
-6. レビューを受ける
+3. `npm test` でテスト実行
+4. `npm run lint` でチェック
+5. `npm run typecheck` で型チェック
+6. PRを作成
+7. レビューを受ける
 
 ---
 
 ## テスト手順
 
-### ローカルテスト
+### ユニットテスト
+
+vitest を使用したユニットテストが `tests/` ディレクトリに用意されています。
+
+```bash
+# 全テスト実行
+npm test
+
+# ウォッチモード（開発中に便利）
+npm run test:watch
+
+# カバレッジ付き
+npm run test:coverage
+```
+
+#### テストファイル構成
+
+```
+tests/
+├── helpers/
+│   └── mock-adapter.ts           # 共通モック ChannelAdapter
+├── channel/
+│   ├── formatter.test.ts         # SplitMessage 分割ロジック
+│   ├── registry.test.ts          # AdapterRegistry ライフサイクル・障害隔離
+│   └── router.test.ts            # NotificationRouter ルーティング
+├── adapters/
+│   ├── slack-adapter.test.ts     # SlackAdapter (後方互換)
+│   ├── line-adapter.test.ts      # LineAdapter (push通知・QuickReply承認)
+│   ├── http-adapter.test.ts      # HttpAdapter (ポーリング状態管理)
+│   └── http-routes.test.ts       # HTTP REST API エンドポイント (supertest)
+├── session/
+│   └── store.test.ts             # SessionStore・クロスチャネルセッション共有
+├── config/
+│   └── config.test.ts            # LoadConfig 環境変数パース
+├── messages/
+│   └── messages.test.ts          # Msg/PlainMsg テンプレート
+└── history/
+    └── recorder.test.ts          # WorkHistory sourceChannel 記録
+```
+
+#### テスト作成ガイドライン
+
+- 新しいモジュール追加時は対応するテストファイルを `tests/` 以下に作成
+- 外部依存（Slack API, LINE API等）は `vi.mock()` でモック
+- 共通の `ChannelAdapter` モックは `tests/helpers/mock-adapter.ts` の `createMockAdapter()` を使用
+- HTTP エンドポイントのテストは `supertest` を使用
+
+### 統合テスト（手動）
 
 ```bash
 # 1. 開発モードで起動
@@ -229,6 +288,12 @@ npm run typecheck
 
 ```bash
 npm run lint
+```
+
+### CI/開発時の全チェック
+
+```bash
+npm test && npm run typecheck && npm run lint
 ```
 
 ---

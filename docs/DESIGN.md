@@ -111,11 +111,24 @@ GitHub Issue や Slack メンションをトリガーに、ローカル環境の
 src/
 ├── index.ts           # エントリーポイント、タスク処理
 ├── config.ts          # 設定読み込み（~/.claps/.env優先）
+├── messages.ts        # メッセージテンプレート (Msg/PlainMsg)
 ├── types/
 │   └── index.ts       # 型定義
+├── channel/           # チャネル抽象化層
+│   ├── adapter.ts     # ChannelAdapter インターフェース
+│   ├── registry.ts    # AdapterRegistry（登録・ライフサイクル管理）
+│   ├── router.ts      # NotificationRouter（通知ルーティング）
+│   └── formatter.ts   # MessageFormatter（分割送信）
 ├── slack/
+│   ├── adapter.ts     # SlackAdapter implements ChannelAdapter
 │   ├── bot.ts         # Slack Bot (Socket Mode)
 │   └── handlers.ts    # メンション・モーダル・ボタン処理
+├── line/              # LINE Bot チャネル
+│   ├── adapter.ts     # LineAdapter implements ChannelAdapter
+│   └── webhook.ts     # Webhook handler + 署名検証
+├── http/              # HTTP チャネル (M5 Stack等)
+│   ├── adapter.ts     # HttpAdapter implements ChannelAdapter
+│   └── routes.ts      # REST API routes
 ├── github/
 │   └── poller.ts      # Issue監視 (ポーリング間隔設定可)
 ├── approval/
@@ -133,11 +146,28 @@ src/
 ├── mcp/
 │   └── setup.ts       # MCP設定（~/.claude.json管理）
 ├── session/
-│   └── store.ts       # セッション永続化（会話継続用）
+│   └── store.ts       # セッション永続化（チャネル横断対応）
+├── history/
+│   ├── recorder.ts    # 作業履歴記録（sourceChannel対応）
+│   └── store.ts       # 履歴ストア
+├── reflection/
+│   ├── engine.ts      # 内省エンジン
+│   ├── scheduler.ts   # 内省スケジューラー
+│   └── store.ts       # 内省ストア
 └── admin/
     ├── server.ts      # 管理画面サーバー
     ├── store.ts       # 管理設定ストア
     └── public/        # 静的ファイル（HTML/CSS/JS）
+
+tests/                 # ユニットテスト (vitest)
+├── helpers/
+│   └── mock-adapter.ts    # 共通モック ChannelAdapter
+├── channel/               # チャネル抽象化層テスト (41テスト)
+├── adapters/              # 各アダプタテスト (65テスト)
+├── session/               # セッション・クロスチャネルテスト (20テスト)
+├── config/                # 設定パーステスト (12テスト)
+├── messages/              # メッセージテンプレートテスト (10テスト)
+└── history/               # 履歴記録テスト (10テスト)
 ```
 
 ### 2. tmux セッション管理
